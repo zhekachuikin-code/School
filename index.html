@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Зошит на літо — генератор завдань перед 2 класом</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:      #faf6ec;
+  --paper-edge: #f1ead9;
+  --rule:       #c7d9e8;
+  --rule-soft:  #e3ecf4;
+  --margin-red: #d85a4c;
+  --ink:        #2c4870;
+  --ink-soft:   #5c6f8c;
+  --graphite:   #4a4640;
+  --good:       #3f8f57;
+  --gold:       #e8ab2e;
+  --gold-deep:  #c8871a;
+  --radius:     14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:
+    radial-gradient(ellipse at top left, #eef2e4 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, #f4e8dc 0%, transparent 55%),
+    #ece5d4;
+  color:var(--graphite);
+  min-height:100vh;
+  padding:32px 16px 64px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ─── header ─── */
+.hero{
+  text-align:center;
+  max-width:640px;
+  margin-bottom:26px;
+}
+.hero .eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--gold-deep);
+  background:#fff6e2;
+  border:1px solid #f0dba8;
+  display:inline-block;
+  padding:5px 14px;
+  border-radius:20px;
+  margin-bottom:14px;
+}
+.hero h1{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:52px;
+  line-height:1.05;
+  color:var(--ink);
+  letter-spacing:0.3px;
+}
+.hero h1 em{ font-style:normal; color:var(--margin-red); }
+.hero p{
+  margin-top:10px;
+  font-size:15px;
+  color:var(--ink-soft);
+  line-height:1.5;
+}
+
+/* ─── controls card ─── */
+.controls{
+  width:100%;
+  max-width:640px;
+  background:#fff;
+  border:1px solid #e6ddc8;
+  border-radius:var(--radius);
+  padding:22px 24px;
+  box-shadow:0 10px 28px rgba(60,50,20,0.08);
+  margin-bottom:30px;
+}
+.field{ margin-bottom:16px; }
+.field:last-of-type{ margin-bottom:0; }
+.field label{
+  display:block;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:7px;
+}
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{
+  font-family:'Nunito',sans-serif;
+  font-size:13.5px;
+  font-weight:700;
+  padding:8px 14px;
+  border-radius:20px;
+  border:1.5px solid var(--rule);
+  background:#fbfdff;
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:all .14s ease;
+}
+.chip:hover{ border-color:var(--ink); color:var(--ink); }
+.chip.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+input[type="text"], select{
+  width:100%;
+  font-family:'Nunito',sans-serif;
+  font-size:14.5px;
+  padding:10px 13px;
+  border:1.5px solid var(--rule);
+  border-radius:9px;
+  background:#fbfdff;
+  color:var(--graphite);
+  outline:none;
+}
+input[type="text"]:focus, select:focus{ border-color:var(--ink); }
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.hint{ font-size:11.5px; color:#9aa5b8; margin-top:6px; }
+
+.gen-btn{
+  width:100%;
+  margin-top:18px;
+  padding:14px;
+  border:none;
+  border-radius:11px;
+  background:linear-gradient(135deg,#ef8265,var(--margin-red));
+  color:#fff;
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:15.5px;
+  letter-spacing:0.2px;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(216,90,76,0.35);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.gen-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(216,90,76,0.42); }
+.gen-btn:disabled{ opacity:0.55; cursor:default; transform:none; box-shadow:none; }
+
+.status{ text-align:center; font-size:13px; font-weight:700; margin:-14px 0 24px; min-height:18px; color:var(--ink-soft); }
+.status.err{ color:var(--margin-red); }
+.status.ok{ color:var(--good); }
+
+/* ─── notebook sheet ─── */
+.notebook{
+  width:100%;
+  max-width:640px;
+  display:none;
+  flex-direction:column;
+  gap:22px;
+}
+.notebook.visible{ display:flex; }
+
+.page{
+  position:relative;
+  background:
+    repeating-linear-gradient(var(--paper) 0px, var(--paper) 30px, var(--rule-soft) 31px, var(--paper) 32px),
+    var(--paper);
+  border-radius:var(--radius);
+  padding:26px 26px 26px 54px;
+  box-shadow:0 14px 34px rgba(60,50,20,0.14);
+  overflow:hidden;
+}
+.page::before{ /* margin line */
+  content:'';
+  position:absolute;
+  left:38px; top:0; bottom:0;
+  width:2px;
+  background:var(--margin-red);
+  opacity:0.55;
+}
+.page::after{ /* punch holes */
+  content:'';
+  position:absolute;
+  left:14px; top:24px; bottom:24px; width:8px;
+  background-image:radial-gradient(circle, #d9d0ba 3.5px, transparent 3.6px);
+  background-size:8px 46px;
+  background-repeat:repeat-y;
+}
+.page-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.6px;
+  text-transform:uppercase;
+  color:#b7bfce;
+  margin-bottom:6px;
+}
+.page h2{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:30px;
+  color:var(--ink);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.page p, .page .body-text{
+  font-size:15.5px;
+  line-height:32px;
+  color:var(--graphite);
+}
+.copy-page .body-text{
+  font-family:'Caveat',cursive;
+  font-size:24px;
+  line-height:32px;
+  color:var(--ink);
+}
+
+/* math list */
+.math-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 24px;
+}
+.math-item{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:17px;
+  font-weight:700;
+  color:var(--graphite);
+  padding:8px 0;
+  border-bottom:1px dashed var(--rule);
+}
+.math-item .num{
+  color:#c5cdda;
+  font-size:12px;
+  font-weight:700;
+  width:16px;
+  flex-shrink:0;
+}
+.math-item .blank{
+  display:inline-block;
+  min-width:48px;
+  border-bottom:2px solid var(--ink-soft);
+  text-align:center;
+  padding-bottom:1px;
+}
+.math-item .answer{
+  color:var(--margin-red);
+  font-weight:800;
+  display:none;
+}
+.math-item.show .blank{ display:none; }
+.math-item.show .answer{ display:inline; }
+
+.problem-answer{
+  display:none;
+  margin-top:14px;
+  padding:12px 14px;
+  background:#fdf1ee;
+  border-left:3px solid var(--margin-red);
+  border-radius:6px;
+  font-size:14.5px;
+  color:#7a3a30;
+  line-height:1.5;
+}
+.problem-answer.visible{ display:block; }
+
+.reveal-btn{
+  margin-top:14px;
+  border:1.5px solid var(--rule);
+  background:#fff;
+  color:var(--ink-soft);
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .14s ease;
+}
+.reveal-btn:hover{ border-color:var(--ink); color:var(--ink); }
+
+.actions-row{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:4px;
+}
+.ghost-btn{
+  border:1.5px solid #d9cfb8;
+  background:#fff;
+  color:var(--ink-soft);
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:13.5px;
+  padding:10px 18px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.ghost-btn:hover{ border-color:var(--ink); color:var(--ink); }
+
+footer{
+  margin-top:36px;
+  font-size:11.5px;
+  color:#a9a08a;
+  text-align:center;
+}
+
+@media (max-width:520px){
+  .two-col{ grid-template-columns:1fr; }
+  .math-grid{ grid-template-columns:1fr; }
+  .hero h1{ font-size:40px; }
+  .page{ padding:22px 18px 22px 44px; }
+}
+
+@media print{
+  body{ background:#fff; padding:0; }
+  .hero, .controls, .status, .actions-row, footer, .reveal-btn{ display:none !important; }
+  .notebook{ max-width:100%; gap:0; }
+  .page{ box-shadow:none; border-radius:0; page-break-after:always; }
+  .math-item .blank{ min-width:70px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">Літня практика · 1 → 2 клас</div>
+  <h1>Зошит на <em>літо</em></h1>
+  <p>Генератор коротких завдань перед другим класом: текст для читання, 10 математичних прикладів, задачка та текст для переписування у зошит.</p>
+</div>
+
+<div class="controls">
+  <div class="field">
+    <label>Тема тексту для читання</label>
+    <div class="chip-row" id="topicChips">
+      <button class="chip active" data-topic="Тварини">🐾 Тварини</button>
+      <button class="chip" data-topic="Пори року">🍂 Пори року</button>
+      <button class="chip" data-topic="Космос">🚀 Космос</button>
+      <button class="chip" data-topic="Казкова пригода">🏰 Казка</button>
+      <button class="chip" data-topic="Дружба">🤝 Дружба</button>
+      <button class="chip" data-topic="Море">🌊 Море</button>
+      <button class="chip" data-topic="custom">✏️ Своя тема</button>
+    </div>
+    <input type="text" id="customTopic" placeholder="Напр.: динозаври, футбол, космічна станція..." style="display:none; margin-top:8px;">
+  </div>
+
+  <div class="two-col">
+    <div class="field">
+      <label>Рівень математики</label>
+      <select id="mathLevel">
+        <option value="easy">Легкий — числа до 10</option>
+        <option value="medium" selected>Середній — числа до 20</option>
+        <option value="hard">Складніший — числа до 100</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Ім'я дитини (необов'язково)</label>
+      <input type="text" id="childName" placeholder="Напр.: Софійка">
+    </div>
+  </div>
+
+  <button class="gen-btn" id="genBtn" onclick="generateWorksheet()">✨ Згенерувати завдання</button>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="notebook" id="notebook">
+
+  <div class="page">
+    <div class="page-tag">Сторінка 1 · Читання</div>
+    <h2 id="readingTitle">📖 Текст для читання</h2>
+    <p class="body-text" id="readingBody"></p>
+  </div>
+
+  <div class="page">
+    <div class="page-tag">Сторінка 2 · Математика</div>
+    <h2>🧮 Реши приклади</h2>
+    <div class="math-grid" id="mathGrid"></div>
+    <button class="reveal-btn" onclick="toggleMathAnswers(this)">Показати відповіді</button>
+  </div>
+
+  <div class="page">
+    <div class="page-tag">Сторінка 3 · Задача</div>
+    <h2>🧩 Розв'яжи задачу</h2>
+    <p class="body-text" id="problemText"></p>
+    <div class="problem-answer" id="problemAnswer"></div>
+    <button class="reveal-btn" onclick="toggleProblemAnswer(this)">Показати розв'язання</button>
+  </div>
+
+  <div class="page copy-page">
+    <div class="page-tag">Сторінка 4 · Переписування</div>
+    <h2>✍️ Перепиши у зошит</h2>
+    <p class="body-text" id="copyBody"></p>
+  </div>
+
+  <div class="actions-row">
+    <button class="ghost-btn" onclick="window.print()">🖨 Друкувати</button>
+    <button class="ghost-btn" onclick="generateWorksheet()">🔄 Нове завдання</button>
+  </div>
+</div>
+
+<footer>Завдання генеруються ІІ — завжди перевіряйте відповіді перед друком.</footer>
+
+<script>
+// ─── CONFIG (той самий сервер ШІ, що й в основному генераторі TreeLand) ───────
+const SERVER_URL = 'https://gemini-api-server-dnzk.onrender.com/api/generate';
+
+let selectedTopic = 'Тварини';
+
+document.querySelectorAll('#topicChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#topicChips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const custom = document.getElementById('customTopic');
+    if (chip.dataset.topic === 'custom') {
+      custom.style.display = 'block';
+      custom.focus();
+      selectedTopic = custom.value.trim() || 'цікава тема на вибір дитини';
+    } else {
+      custom.style.display = 'none';
+      selectedTopic = chip.dataset.topic;
+    }
+  });
+});
+document.getElementById('customTopic').addEventListener('input', (e) => {
+  selectedTopic = e.target.value.trim() || 'цікава тема на вибір дитини';
+});
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status' + (type ? ' ' + type : '');
+}
+
+async function callServer(prompt) {
+  try {
+    const resp = await fetch(SERVER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await resp.json();
+    return data.ok ? { ok: true, text: data.text } : { ok: false, text: '' };
+  } catch (e) {
+    return { ok: false, text: '' };
+  }
+}
+
+function parseWorksheetJson(text) {
+  if (!text) return null;
+  let txt = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '');
+  try {
+    const obj = JSON.parse(txt);
+    if (obj && typeof obj === 'object') return obj;
+  } catch (e) {}
+  const first = txt.indexOf('{');
+  const last  = txt.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    try {
+      const obj = JSON.parse(txt.slice(first, last + 1));
+      if (obj && typeof obj === 'object') return obj;
+    } catch (e) {}
+  }
+  return null;
+}
+
+function levelDescription(level) {
+  if (level === 'easy')   return 'додавання і віднімання в межах 10, без переходу через десяток';
+  if (level === 'hard')   return 'додавання і віднімання в межах 100, включно з переходом через десяток (наприклад 47+8, 62-15)';
+  return 'додавання і віднімання в межах 20, включно з переходом через десяток (наприклад 8+7, 15-6)';
+}
+
+function buildWorksheetPrompt(topic, level, childName) {
+  const nameNote = childName ? `Ім'я дитини — ${childName}, можеш іноді звертатися до неї на ім'я в тексті для переписування, але не обов'язково у всіх частинах.` : '';
+  return `Ти — досвідчений вчитель початкових класів в Україні. Створи домашнє завдання для дитини, яка влітку готується перейти з 1 до 2 класу (повторення програми 1 класу).
+
+Тема для тексту читання: "${topic}".
+Рівень математики: ${levelDescription(level)}.
+${nameNote}
+
+Поверни ВИКЛЮЧНО валідний JSON (без пояснень, без markdown, без \`\`\`) у такому форматі:
+
+{
+  "readingTitle": "коротка яскрава назва тексту (3-6 слів)",
+  "readingBody": "текст для читання з теми, 5-8 простих речень (60-100 слів), зрозумілою для дитини 7-8 років мовою, без складних термінів",
+  "mathExamples": [
+    {"expression": "7 + 8 =", "answer": "15"},
+    ... рівно 10 прикладів у такому ж форматі, різноманітних (частина на додавання, частина на віднімання), відповідно до вказаного рівня складності
+  ],
+  "problemText": "текстова задача для дитини 7-8 років (2-3 речення), логічно пов'язана з рівнем математики вище, з чітким питанням в кінці",
+  "problemAnswer": "коротке покрокове розв'язання задачі з відповіддю (2-4 речення, простою мовою)",
+  "copyTitle": "коротка назва тексту для переписування",
+  "copyBody": "невеликий текст на 2-4 прості короткі речення (15-30 слів) для переписування дитиною у зошит каліграфічним почерком — прості слова, правильна пунктуація, без складних конструкцій"
+}
+
+Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer.`;
+}
+
+function renderMathExamples(examples) {
+  const grid = document.getElementById('mathGrid');
+  grid.innerHTML = '';
+  examples.slice(0, 10).forEach((ex, i) => {
+    const item = document.createElement('div');
+    item.className = 'math-item';
+    item.innerHTML = `<span class="num">${i + 1}.</span> <span>${escapeHtml(ex.expression || '')}</span> <span class="blank"></span><span class="answer">${escapeHtml(ex.answer || '')}</span>`;
+    grid.appendChild(item);
+  });
+}
+
+function toggleMathAnswers(btn) {
+  const items = document.querySelectorAll('.math-item');
+  const showing = btn.textContent.includes('Приховати');
+  items.forEach(it => it.classList.toggle('show', !showing));
+  btn.textContent = showing ? 'Показати відповіді' : 'Приховати відповіді';
+}
+
+function toggleProblemAnswer(btn) {
+  const box = document.getElementById('problemAnswer');
+  box.classList.toggle('visible');
+  btn.textContent = box.classList.contains('visible') ? 'Сховати розв\'язання' : 'Показати розв\'язання';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+async function generateWorksheet() {
+  const btn = document.getElementById('genBtn');
+  const level = document.getElementById('mathLevel').value;
+  const childName = document.getElementById('childName').value.trim();
+  const topic = selectedTopic;
+
+  btn.disabled = true;
+  document.getElementById('notebook').classList.remove('visible');
+  setStatus('⏳ Готую завдання... це займе кілька секунд', '');
+
+  const res = await callServer(buildWorksheetPrompt(topic, level, childName));
+  if (!res.ok) {
+    setStatus('❌ Не вдалося зв\'язатися з сервером ШІ. Спробуйте ще раз.', 'err');
+    btn.disabled = false;
+    return;
+  }
+
+  const data = parseWorksheetJson(res.text);
+  if (!data || !data.mathExamples) {
+    setStatus('⚠️ ШІ повернув некоректну відповідь. Спробуйте згенерувати ще раз.', 'err');
+    btn.disabled = false;
+    return;
+  }
+
+  document.getElementById('readingTitle').textContent = '📖 ' + (data.readingTitle || 'Текст для читання');
+  document.getElementById('readingBody').textContent = data.readingBody || '';
+  renderMathExamples(Array.isArray(data.mathExamples) ? data.mathExamples : []);
+  document.getElementById('problemText').textContent = data.problemText || '';
+  document.getElementById('problemAnswer').textContent = data.problemAnswer || '';
+  document.getElementById('problemAnswer').classList.remove('visible');
+  document.querySelectorAll('.reveal-btn')[1] && (document.querySelectorAll('.reveal-btn')[1].textContent = 'Показати розв\'язання');
+  document.querySelectorAll('.math-item').forEach(it => it.classList.remove('show'));
+  document.querySelectorAll('.reveal-btn')[0] && (document.querySelectorAll('.reveal-btn')[0].textContent = 'Показати відповіді');
+  document.getElementById('copyBody').textContent = data.copyBody || '';
+
+  document.getElementById('notebook').classList.add('visible');
+  setStatus('✅ Готово! Завдання на сьогодні чекають.', 'ok');
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
