@@ -299,6 +299,8 @@ input[type="text"]:focus, select:focus{ border-color:var(--ink); }
 }
 .ghost-btn:hover{ border-color:var(--ink); color:var(--ink); }
 
+.locked-hint{ font-size:11px; color:var(--gold-deep); margin-top:6px; }
+
 footer{
   margin-top:36px;
   font-size:11.5px;
@@ -315,11 +317,211 @@ footer{
 
 @media print{
   body{ background:#fff; padding:0; }
-  .hero, .controls, .status, .actions-row, footer, .reveal-btn{ display:none !important; }
+  .hero, .controls, .status, .actions-row, footer, .reveal-btn, .trainer, .teacher-fab, .teacher-panel{ display:none !important; }
   .notebook{ max-width:100%; gap:0; }
   .page{ box-shadow:none; border-radius:0; page-break-after:always; }
   .math-item .blank{ min-width:70px; }
 }
+
+/* ─── multiplication trainer ─── */
+.trainer{
+  width:100%;
+  max-width:640px;
+  background:#fff;
+  border:1px solid #e6ddc8;
+  border-radius:var(--radius);
+  padding:22px 24px;
+  box-shadow:0 10px 28px rgba(60,50,20,0.08);
+  margin-bottom:30px;
+}
+.trainer h2{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:28px;
+  color:var(--ink);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.table-chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.table-chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  font-weight:700;
+  width:38px; height:38px;
+  border-radius:10px;
+  border:1.5px solid var(--rule);
+  background:#fbfdff;
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:all .14s ease;
+}
+.table-chip:hover{ border-color:var(--ink); color:var(--ink); }
+.table-chip.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+.trainer-btn{
+  border:none;
+  border-radius:20px;
+  padding:10px 18px;
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:13.5px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#ef8265,var(--margin-red));
+  color:#fff;
+  box-shadow:0 6px 16px rgba(216,90,76,0.3);
+}
+.trainer-btn.secondary{
+  background:#fff;
+  border:1.5px solid var(--rule);
+  color:var(--ink-soft);
+  box-shadow:none;
+}
+.trainer-btn.secondary:hover{ border-color:var(--ink); color:var(--ink); }
+.trainer-quiz{ margin-top:16px; display:none; }
+.trainer-quiz.visible{ display:block; }
+.tq-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 20px; margin-bottom:14px; }
+.tq-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:15.5px;
+  font-weight:700;
+  color:var(--graphite);
+}
+.tq-item input{
+  width:56px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:15px;
+  font-weight:700;
+  text-align:center;
+  padding:6px 4px;
+  border:1.5px solid var(--rule);
+  border-radius:7px;
+  outline:none;
+}
+.tq-item input:focus{ border-color:var(--ink); }
+.tq-item.correct input{ border-color:var(--good); background:#eefaf1; }
+.tq-item.wrong input{ border-color:var(--margin-red); background:#fdf1ee; }
+.tq-item .tq-answer{ font-size:12.5px; color:var(--margin-red); font-weight:800; display:none; }
+.tq-item.show-answer .tq-answer{ display:inline; }
+.trainer-actions{ display:flex; flex-wrap:wrap; gap:10px; }
+.trainer-score{ margin-top:12px; font-size:14px; font-weight:800; color:var(--ink); min-height:20px; }
+
+/* ─── teacher helper ─── */
+.teacher-fab{
+  position:fixed;
+  right:20px; bottom:20px;
+  z-index:40;
+  border:none;
+  border-radius:30px;
+  padding:14px 20px;
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:14px;
+  color:#fff;
+  background:linear-gradient(135deg,#6fa8dc,var(--ink));
+  cursor:pointer;
+  box-shadow:0 10px 26px rgba(44,72,112,0.35);
+}
+.teacher-fab:hover{ transform:translateY(-2px); }
+.teacher-panel{
+  position:fixed;
+  right:20px; bottom:84px;
+  z-index:40;
+  width:340px;
+  max-width:calc(100vw - 40px);
+  max-height:70vh;
+  background:#fff;
+  border:1px solid #e6ddc8;
+  border-radius:var(--radius);
+  box-shadow:0 18px 44px rgba(30,30,20,0.25);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+.teacher-panel.visible{ display:flex; }
+.teacher-head{
+  background:linear-gradient(135deg,#6fa8dc,var(--ink));
+  color:#fff;
+  padding:14px 16px;
+  font-family:'Caveat',cursive;
+  font-size:22px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.teacher-head button{
+  background:rgba(255,255,255,0.2);
+  border:none;
+  color:#fff;
+  width:26px; height:26px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:14px;
+  line-height:1;
+}
+.teacher-body{
+  flex:1;
+  overflow-y:auto;
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background:#fbfaf5;
+}
+.tmsg{
+  max-width:85%;
+  padding:9px 12px;
+  border-radius:12px;
+  font-size:13.5px;
+  line-height:1.45;
+}
+.tmsg.bot{
+  align-self:flex-start;
+  background:#eef3fa;
+  color:var(--ink);
+  border-bottom-left-radius:3px;
+}
+.tmsg.user{
+  align-self:flex-end;
+  background:var(--ink);
+  color:#fff;
+  border-bottom-right-radius:3px;
+}
+.teacher-input-row{
+  display:flex;
+  gap:6px;
+  padding:10px;
+  border-top:1px solid #eee2c9;
+  background:#fff;
+}
+.teacher-input-row input{
+  flex:1;
+  font-family:'Nunito',sans-serif;
+  font-size:13.5px;
+  padding:9px 11px;
+  border:1.5px solid var(--rule);
+  border-radius:20px;
+  outline:none;
+}
+.teacher-input-row input:focus{ border-color:var(--ink); }
+.mic-btn, .send-btn{
+  border:none;
+  border-radius:50%;
+  width:36px; height:36px;
+  flex-shrink:0;
+  cursor:pointer;
+  font-size:15px;
+  background:#f0f4f8;
+  color:var(--ink);
+}
+.mic-btn.listening{ background:var(--margin-red); color:#fff; animation:pulse 1s infinite; }
+@keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(216,90,76,0.5);} 70%{box-shadow:0 0 0 8px rgba(216,90,76,0);} 100%{box-shadow:0 0 0 0 rgba(216,90,76,0);} }
+.send-btn{ background:var(--margin-red); color:#fff; }
+.teacher-typing{ font-size:12px; color:var(--ink-soft); font-style:italic; }
 </style>
 </head>
 <body>
@@ -356,7 +558,7 @@ footer{
     </div>
     <div class="field">
       <label>Ім'я дитини (необов'язково)</label>
-      <input type="text" id="childName" placeholder="Напр.: Аліса">
+      <input type="text" id="childName" placeholder="Напр.: Софійка" value="Аліса">
     </div>
   </div>
 
@@ -364,6 +566,21 @@ footer{
 </div>
 
 <div class="status" id="status"></div>
+
+<div class="trainer">
+  <h2>🔢 Тренажер таблиці множення</h2>
+  <div class="hint" style="margin:-6px 0 12px;">Обери таблицю (можна кілька) і почни тренування</div>
+  <div class="table-chip-row" id="tableChips"></div>
+  <div class="trainer-actions">
+    <button class="trainer-btn" onclick="startMultiplicationQuiz()">▶️ Почати тренування</button>
+    <button class="trainer-btn secondary" onclick="checkMultiplicationQuiz()">✅ Перевірити</button>
+    <button class="trainer-btn secondary" onclick="revealMultiplicationAnswers()">🔒 Показати відповіді</button>
+  </div>
+  <div class="trainer-quiz" id="trainerQuiz">
+    <div class="tq-grid" id="tqGrid"></div>
+  </div>
+  <div class="trainer-score" id="trainerScore"></div>
+</div>
 
 <div class="notebook" id="notebook">
 
@@ -401,6 +618,21 @@ footer{
 </div>
 
 <footer>Завдання генеруються ІІ — завжди перевіряйте відповіді перед друком.</footer>
+
+<button class="teacher-fab" id="teacherFab" onclick="toggleTeacherPanel()">🧑‍🏫 Допомога вчительки</button>
+
+<div class="teacher-panel" id="teacherPanel">
+  <div class="teacher-head">
+    <span>Пані Вчителька 🍎</span>
+    <button onclick="toggleTeacherPanel()">✕</button>
+  </div>
+  <div class="teacher-body" id="teacherBody"></div>
+  <div class="teacher-input-row">
+    <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Говорити">🎤</button>
+    <input type="text" id="teacherInput" placeholder="Напиши своє питання..." onkeydown="if(event.key==='Enter') sendTeacherMessage();">
+    <button class="send-btn" onclick="sendTeacherMessage()" title="Надіслати">➤</button>
+  </div>
+</div>
 
 <script>
 // ─── CONFIG (той самий сервер ШІ, що й в основному генераторі TreeLand) ───────
@@ -508,17 +740,217 @@ function renderMathExamples(examples) {
   });
 }
 
+// ─── password protection for answer/results buttons ───────
+const RESULTS_PASSWORD = 'АЛІСА';
+let resultsUnlocked = false;
+
+function unlockResults() {
+  if (resultsUnlocked) return true;
+  const pass = prompt('🔒 Введіть пароль, щоб побачити відповіді:');
+  if (pass === null) return false;
+  if (pass.trim().toUpperCase() === RESULTS_PASSWORD) {
+    resultsUnlocked = true;
+    return true;
+  }
+  alert('Невірний пароль.');
+  return false;
+}
+
 function toggleMathAnswers(btn) {
   const items = document.querySelectorAll('.math-item');
   const showing = btn.textContent.includes('Приховати');
+  if (!showing && !unlockResults()) return;
   items.forEach(it => it.classList.toggle('show', !showing));
   btn.textContent = showing ? 'Показати відповіді' : 'Приховати відповіді';
 }
 
 function toggleProblemAnswer(btn) {
   const box = document.getElementById('problemAnswer');
+  const showing = box.classList.contains('visible');
+  if (!showing && !unlockResults()) return;
   box.classList.toggle('visible');
   btn.textContent = box.classList.contains('visible') ? 'Сховати розв\'язання' : 'Показати розв\'язання';
+}
+
+// ─── multiplication table trainer ───────
+let selectedTables = new Set([2]);
+let currentQuiz = [];
+
+function initTableChips() {
+  const row = document.getElementById('tableChips');
+  row.innerHTML = '';
+  for (let n = 2; n <= 9; n++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'table-chip' + (selectedTables.has(n) ? ' active' : '');
+    btn.textContent = n;
+    btn.onclick = () => {
+      if (selectedTables.has(n)) {
+        if (selectedTables.size > 1) selectedTables.delete(n);
+      } else {
+        selectedTables.add(n);
+      }
+      initTableChips();
+    };
+    row.appendChild(btn);
+  }
+}
+
+function startMultiplicationQuiz() {
+  const tables = Array.from(selectedTables);
+  const questions = [];
+  for (let i = 0; i < 10; i++) {
+    const a = tables[Math.floor(Math.random() * tables.length)];
+    const b = Math.floor(Math.random() * 10) + 1;
+    questions.push({ a, b, answer: a * b });
+  }
+  currentQuiz = questions;
+
+  const grid = document.getElementById('tqGrid');
+  grid.innerHTML = '';
+  questions.forEach((q, i) => {
+    const item = document.createElement('div');
+    item.className = 'tq-item';
+    item.dataset.index = i;
+    item.innerHTML = `<span>${q.a} × ${q.b} =</span><input type="text" inputmode="numeric" autocomplete="off"><span class="tq-answer">${q.answer}</span>`;
+    grid.appendChild(item);
+  });
+  document.getElementById('trainerQuiz').classList.add('visible');
+  document.getElementById('trainerScore').textContent = '';
+}
+
+function checkMultiplicationQuiz() {
+  if (!currentQuiz.length) { alert('Спочатку натисни «▶️ Почати тренування».'); return; }
+  let correct = 0;
+  document.querySelectorAll('.tq-item').forEach(item => {
+    const idx = parseInt(item.dataset.index, 10);
+    const input = item.querySelector('input');
+    const val = parseInt(input.value.trim(), 10);
+    const isCorrect = val === currentQuiz[idx].answer;
+    item.classList.toggle('correct', isCorrect);
+    item.classList.toggle('wrong', !isCorrect && input.value.trim() !== '');
+    if (isCorrect) correct++;
+  });
+  document.getElementById('trainerScore').textContent = `Правильно: ${correct} з ${currentQuiz.length} 🎉`;
+}
+
+function revealMultiplicationAnswers() {
+  if (!currentQuiz.length) { alert('Спочатку натисни «▶️ Почати тренування».'); return; }
+  const firstItem = document.querySelector('.tq-item');
+  const showing = firstItem && firstItem.classList.contains('show-answer');
+  if (!showing && !unlockResults()) return;
+  document.querySelectorAll('.tq-item').forEach(it => it.classList.toggle('show-answer', !showing));
+}
+
+initTableChips();
+
+// ─── teacher helper chat (with optional voice input) ───────
+let teacherHistory = [];
+
+function currentChildName() {
+  return document.getElementById('childName').value.trim() || 'дитино';
+}
+
+function toggleTeacherPanel() {
+  const panel = document.getElementById('teacherPanel');
+  panel.classList.toggle('visible');
+  if (panel.classList.contains('visible') && teacherHistory.length === 0) {
+    appendTeacherMessage('bot', `Привіт, ${currentChildName()}! Я твоя вчителька-помічниця 🍎 Постав мені будь-яке питання про уроки, слова чи приклади — і я поясню простими словами.`);
+  }
+}
+
+function appendTeacherMessage(role, text) {
+  const body = document.getElementById('teacherBody');
+  const div = document.createElement('div');
+  div.className = 'tmsg ' + (role === 'user' ? 'user' : 'bot');
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  teacherHistory.push({ role, text });
+}
+
+function buildTeacherPrompt(question) {
+  const name = currentChildName();
+  const historyText = teacherHistory.slice(-8)
+    .map(m => (m.role === 'user' ? `Дитина: ${m.text}` : `Вчителька: ${m.text}`))
+    .join('\n');
+  return `Ти — добра, терпляча і уважна вчителька початкових класів в Україні. Ти спілкуєшся напряму з дитиною на ім'я ${name} (7-8 років), яка влітку готується до 2 класу.
+Говори теплою, простою мовою, короткими реченнями (2-5 речень), без складних термінів, помірно використовуй емодзі. Якщо дитина просить розв'язати приклад — поясни хід думки, а не просто дай готову відповідь. Заохочуй і підтримуй дитину. Ніколи не пиши нічого недоречного чи страшного для дитини; якщо питання не про навчання, лагідно поверни розмову до уроків.
+
+Історія розмови:
+${historyText || '(це перше повідомлення)'}
+
+Нове питання дитини: "${question}"
+
+Дай одну коротку, теплу, зрозумілу відповідь вчительки українською мовою (без markdown, без заголовків, без списків).`;
+}
+
+async function sendTeacherMessage() {
+  const input = document.getElementById('teacherInput');
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = '';
+  appendTeacherMessage('user', question);
+
+  const body = document.getElementById('teacherBody');
+  const typing = document.createElement('div');
+  typing.className = 'teacher-typing';
+  typing.id = 'teacherTyping';
+  typing.textContent = 'Вчителька пише відповідь...';
+  body.appendChild(typing);
+  body.scrollTop = body.scrollHeight;
+
+  const res = await callServer(buildTeacherPrompt(question));
+  document.getElementById('teacherTyping')?.remove();
+
+  if (!res.ok || !res.text) {
+    appendTeacherMessage('bot', 'Вибач, я зараз не можу відповісти 😔 Спробуй ще раз трохи пізніше.');
+    return;
+  }
+  appendTeacherMessage('bot', res.text.trim());
+}
+
+// ─── voice input (Web Speech API) ───────
+let recognition = null;
+let isListening = false;
+
+function getSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = 'uk-UA';
+  r.interimResults = false;
+  r.maxAlternatives = 1;
+  return r;
+}
+
+function toggleVoiceInput() {
+  const micBtn = document.getElementById('micBtn');
+  if (isListening) {
+    recognition && recognition.stop();
+    return;
+  }
+  recognition = getSpeechRecognition();
+  if (!recognition) {
+    alert('На жаль, голосовий ввід не підтримується у цьому браузері. Спробуйте відкрити сторінку в Google Chrome.');
+    return;
+  }
+  isListening = true;
+  micBtn.classList.add('listening');
+
+  recognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    document.getElementById('teacherInput').value = text;
+  };
+  recognition.onerror = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+  };
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+  };
+  recognition.start();
 }
 
 function escapeHtml(s) {
