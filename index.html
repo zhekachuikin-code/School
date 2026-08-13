@@ -566,6 +566,11 @@ footer{
   align-items:center;
   justify-content:space-between;
 }
+.teacher-head-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 .teacher-head button{
   background:rgba(255,255,255,0.2);
   border:none;
@@ -576,6 +581,7 @@ footer{
   font-size:14px;
   line-height:1;
 }
+#voiceToggleBtn.muted{ background:rgba(216,90,76,0.55); }
 .teacher-body{
   flex:1;
   overflow-y:auto;
@@ -770,7 +776,10 @@ footer{
 <div class="teacher-panel" id="teacherPanel">
   <div class="teacher-head">
     <span>Пані Вчителька 🍎</span>
-    <button onclick="toggleTeacherPanel()">✕</button>
+    <div class="teacher-head-actions">
+      <button id="voiceToggleBtn" onclick="toggleAutoVoice()" title="Вимкнути озвучку">🔊</button>
+      <button onclick="toggleTeacherPanel()">✕</button>
+    </div>
   </div>
   <div class="teacher-body" id="teacherBody"></div>
   <div class="teacher-input-row">
@@ -1153,9 +1162,26 @@ initTableChips();
 
 // ─── teacher helper chat (with optional voice input) ───────
 let teacherHistory = [];
+let autoVoiceEnabled = true; // за замовчуванням вчителька озвучує кожну відповідь
 
 function currentChildName() {
   return document.getElementById('childName').value.trim() || 'дитино';
+}
+
+function toggleAutoVoice() {
+  autoVoiceEnabled = !autoVoiceEnabled;
+  const btn = document.getElementById('voiceToggleBtn');
+  btn.textContent = autoVoiceEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !autoVoiceEnabled);
+  btn.title = autoVoiceEnabled ? 'Вимкнути озвучку' : 'Увімкнути озвучку';
+}
+
+// прибираємо емодзі перед відправкою тексту на озвучку — TTS-модель читає їх невдало
+function stripEmojiForSpeech(text) {
+  return text
+    .replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function toggleTeacherPanel() {
@@ -1176,11 +1202,12 @@ function appendTeacherMessage(role, text) {
   div.textContent = text;
   wrap.appendChild(div);
 
+  let speakBtn = null;
   if (role !== 'user') {
-    const speakBtn = document.createElement('button');
+    speakBtn = document.createElement('button');
     speakBtn.type = 'button';
     speakBtn.className = 'speak-btn';
-    speakBtn.title = 'Прослухати';
+    speakBtn.title = 'Повторити озвучку';
     speakBtn.textContent = '🔊';
     speakBtn.onclick = () => playTeacherAudio(text, speakBtn);
     wrap.appendChild(speakBtn);
@@ -1189,14 +1216,23 @@ function appendTeacherMessage(role, text) {
   body.appendChild(wrap);
   body.scrollTop = body.scrollHeight;
   teacherHistory.push({ role, text });
+
+  // автоозвучення відповіді вчительки (якщо не вимкнено перемикачем)
+  if (role !== 'user' && autoVoiceEnabled && speakBtn) {
+    playTeacherAudio(text, speakBtn, { silent: true });
+  }
 }
 
-async function playTeacherAudio(text, btn) {
+async function playTeacherAudio(text, btn, opts = {}) {
+  const silent = !!opts.silent;
   // якщо вже озвучували цю репліку — просто відтворюємо ще раз без нового запиту
   if (btn.dataset.audio) {
-    new Audio(btn.dataset.audio).play();
+    new Audio(btn.dataset.audio).play().catch(() => {});
     return;
   }
+  const speechText = stripEmojiForSpeech(text);
+  if (!speechText) return;
+
   const original = btn.textContent;
   btn.textContent = '⏳';
   btn.disabled = true;
@@ -1204,15 +1240,16 @@ async function playTeacherAudio(text, btn) {
     const resp = await fetch(TTS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text: speechText })
     });
     const data = await resp.json();
     if (!data.ok || !data.audio) throw new Error('no audio');
     const src = `data:${data.mimeType || 'audio/wav'};base64,${data.audio}`;
     btn.dataset.audio = src;
-    new Audio(src).play();
+    // якщо браузер заблокував автовідтворення без прямої дії користувача — це не помилка, просто ігноруємо
+    new Audio(src).play().catch(() => {});
   } catch (e) {
-    alert('Не вдалося озвучити повідомлення 😔 Спробуй ще раз.');
+    if (!silent) alert('Не вдалося озвучити повідомлення 😔 Спробуй ще раз.');
   } finally {
     btn.textContent = original;
     btn.disabled = false;
