@@ -378,6 +378,52 @@ input[type="text"]:focus, select:focus{ border-color:var(--ink); }
   font-style:italic;
 }
 
+.reading-questions{
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1.5px dashed var(--rule);
+}
+.reading-questions h3{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:24px;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.rq-card{
+  background:#fbfaf5;
+  border:1px solid #e6ddc8;
+  border-radius:10px;
+  padding:12px 16px;
+  margin-bottom:10px;
+}
+.rq-q{
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--graphite);
+  line-height:1.45;
+  margin-bottom:2px;
+}
+.rq-answer{
+  display:none;
+  margin-top:10px;
+  padding:10px 12px;
+  background:#eefaf1;
+  border-left:3px solid var(--good);
+  border-radius:6px;
+  font-size:14px;
+  color:#2f6b41;
+  line-height:1.5;
+}
+.rq-answer.visible{ display:block; }
+mark.rq-mark{
+  background:#ffe08a;
+  color:inherit;
+  padding:0 2px;
+  border-radius:3px;
+  box-shadow:0 0 0 2px #ffe08a;
+}
+
 .reveal-btn{
   margin-top:14px;
   border:1.5px solid var(--rule);
@@ -725,6 +771,12 @@ footer{
     <div class="page-tag">Сторінка 1 · Читання</div>
     <h2 id="readingTitle">📖 Текст для читання</h2>
     <p class="body-text" id="readingBody"></p>
+
+    <div class="reading-questions" id="readingQuestions" style="display:none;">
+      <h3>❓ Питання за текстом</h3>
+      <div class="hint" style="margin:-4px 0 10px;">Спробуй відповісти сама, а тоді натисни кнопку — вона покаже відповідь і підсвітить потрібне місце в тексті вище</div>
+      <div id="readingQuestionsList"></div>
+    </div>
   </div>
 
   <div class="page">
@@ -872,6 +924,10 @@ ${nameNote}
 {
   "readingTitle": "коротка яскрава назва тексту (3-6 слів)",
   "readingBody": "текст для читання з теми, 5-8 простих речень (60-100 слів), зрозумілою для дитини 7-8 років мовою, без складних термінів",
+  "readingQuestions": [
+    {"question": "просте питання на розуміння тексту №1 (хто? що? де? коли?)", "answer": "коротка відповідь одним реченням", "hint": "точна фраза (3-7 слів) СЛОВО В СЛОВО скопійована прямо з readingBody, в якій міститься відповідь на це питання"},
+    ... рівно 3 питання за прочитаним текстом, від найпростішого (факт з тексту) до трохи складнішого (наприклад "чому?" або "що сталося після цього?"). Кожне питання перевіряє розуміння саме цього тексту readingBody, а не загальні знання. Поле "hint" ОБОВ'ЯЗКОВО має бути точною підрядкою (substring) з readingBody без жодних змін слів чи форм — це потрібно, щоб підсвітити місце відповіді прямо в тексті
+  ],
   "mathExamples": [
     {"expression": "7 + 8 =", "answer": "15"},
     ... рівно 10 прикладів у такому ж форматі, різноманітних (частина на додавання, частина на віднімання), відповідно до вказаного рівня складності. Обов'язково зроби 2-3 приклади з ТРЬОМА числами і двома діями поспіль, наприклад "9 - 5 + 3 =" або "4 + 6 - 2 =" (порядок дій зліва направо, відповідь має бути правильною з урахуванням обох дій). Решта прикладів — звичайні, з двома числами
@@ -884,7 +940,7 @@ ${nameNote}
   "copyBody": "невеликий текст на 2-4 прості короткі речення (15-30 слів) для переписування дитиною у зошит каліграфічним почерком — прості слова, правильна пунктуація, без складних конструкцій"
 }
 
-Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer. Задача №1 і задача №2 мають використовувати РІЗНІ арифметичні дії (наприклад одна на додавання, інша на віднімання).`;
+Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer. Задача №1 і задача №2 мають використовувати РІЗНІ арифметичні дії (наприклад одна на додавання, інша на віднімання). Поле "hint" у кожному readingQuestions обов'язково бери дослівно з тексту readingBody (без перефразовування), інакше підсвітка в тексті не спрацює.`;
 }
 
 let currentMathAnswers = [];
@@ -954,6 +1010,84 @@ function toggleProblemAnswer(btn, id) {
   if (!showing && !unlockResults()) return;
   box.classList.toggle('visible');
   btn.textContent = box.classList.contains('visible') ? 'Сховати розв\'язання' : 'Показати розв\'язання';
+}
+
+// ─── reading comprehension questions (Сторінка 1 · Читання) ───────
+let currentReadingBody = '';
+let currentReadingQuestions = [];
+
+function renderReadingQuestions(questions, bodyText) {
+  currentReadingBody = bodyText || '';
+  currentReadingQuestions = Array.isArray(questions) ? questions.slice(0, 4) : [];
+
+  const wrap = document.getElementById('readingQuestions');
+  const list = document.getElementById('readingQuestionsList');
+  list.innerHTML = '';
+
+  if (!currentReadingQuestions.length) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  currentReadingQuestions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'rq-card';
+    card.innerHTML = `
+      <div class="rq-q">${i + 1}. ${escapeHtml(q.question || '')}</div>
+      <div class="rq-answer" id="rqAnswer${i}">${escapeHtml(q.answer || '')}</div>
+      <button class="reveal-btn" id="rqBtn${i}" onclick="toggleReadingAnswer(${i})">Показати відповідь</button>
+    `;
+    list.appendChild(card);
+  });
+
+  wrap.style.display = 'block';
+  resetReadingHighlight();
+}
+
+function resetReadingHighlight() {
+  const bodyEl = document.getElementById('readingBody');
+  if (bodyEl) bodyEl.textContent = currentReadingBody;
+}
+
+function highlightInReadingBody(hint) {
+  const bodyEl = document.getElementById('readingBody');
+  if (!bodyEl) return;
+  const text = currentReadingBody;
+  const idx = hint ? text.toLowerCase().indexOf(String(hint).toLowerCase()) : -1;
+
+  if (idx === -1) {
+    bodyEl.textContent = text;
+    return;
+  }
+  const before = text.slice(0, idx);
+  const match  = text.slice(idx, idx + hint.length);
+  const after  = text.slice(idx + hint.length);
+  bodyEl.innerHTML = escapeHtml(before) + '<mark class="rq-mark">' + escapeHtml(match) + '</mark>' + escapeHtml(after);
+
+  const markEl = bodyEl.querySelector('mark.rq-mark');
+  if (markEl) markEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function toggleReadingAnswer(idx) {
+  const answerEl = document.getElementById('rqAnswer' + idx);
+  const btn = document.getElementById('rqBtn' + idx);
+  if (!answerEl || !btn) return;
+
+  const showing = answerEl.classList.contains('visible');
+  if (!showing && !unlockResults()) return;
+
+  if (showing) {
+    answerEl.classList.remove('visible');
+    btn.textContent = 'Показати відповідь';
+    resetReadingHighlight();
+  } else {
+    // ховаємо підсвітку інших питань, щоб не плутати дитину
+    resetReadingHighlight();
+    answerEl.classList.add('visible');
+    btn.textContent = 'Сховати відповідь';
+    const q = currentReadingQuestions[idx];
+    highlightInReadingBody(q && q.hint);
+  }
 }
 
 // ─── word analysis (звуко-буквений розбір) ───────
@@ -1370,6 +1504,7 @@ async function generateWorksheet() {
 
   document.getElementById('readingTitle').textContent = '📖 ' + (data.readingTitle || 'Текст для читання');
   document.getElementById('readingBody').textContent = data.readingBody || '';
+  renderReadingQuestions(Array.isArray(data.readingQuestions) ? data.readingQuestions : [], data.readingBody || '');
   renderMathExamples(Array.isArray(data.mathExamples) ? data.mathExamples : []);
   document.getElementById('mathRevealBtn').textContent = 'Показати відповіді';
 
