@@ -24,9 +24,14 @@
 body{
   font-family:'Nunito',sans-serif;
   background:
-    radial-gradient(ellipse at top left, #eef2e4 0%, transparent 55%),
-    radial-gradient(ellipse at bottom right, #f4e8dc 0%, transparent 55%),
-    #ece5d4;
+    radial-gradient(circle at 10% 15%, rgba(255,209,102,0.45) 0%, transparent 38%),
+    radial-gradient(circle at 90% 8%,  rgba(255,138,178,0.40) 0%, transparent 40%),
+    radial-gradient(circle at 15% 88%, rgba(126,214,223,0.40) 0%, transparent 42%),
+    radial-gradient(circle at 92% 82%, rgba(168,230,163,0.40) 0%, transparent 42%),
+    radial-gradient(circle at 50% 45%, rgba(255,255,255,0.5) 0%, transparent 60%),
+    linear-gradient(160deg, #eaf6ff 0%, #fdf6ea 45%, #fff0f5 100%);
+  background-attachment:fixed;
+  position:relative;
   color:var(--graphite);
   min-height:100vh;
   padding:32px 16px 64px;
@@ -34,6 +39,18 @@ body{
   flex-direction:column;
   align-items:center;
 }
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:0.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ccircle cx='14' cy='20' r='3' fill='%23ffd166'/%3E%3Ccircle cx='70' cy='50' r='2.5' fill='%237ed6df'/%3E%3Ccircle cx='108' cy='95' r='3' fill='%23ff8ab2'/%3E%3Ccircle cx='38' cy='110' r='2.5' fill='%23a8e6a3'/%3E%3Cpath d='M100 20 l2.4 5.8 l6.2 0.7 l-4.6 4.2 l1.2 6.1 l-5.2-3.2 l-5.2 3.2 l1.2-6.1 l-4.6-4.2 l6.2-0.7 z' fill='%23ffd166'/%3E%3Cpath d='M25 65 l1.8 4.4 l4.7 0.5 l-3.5 3.2 l0.9 4.6 l-3.9-2.4 l-3.9 2.4 l0.9-4.6 l-3.5-3.2 l4.7-0.5 z' fill='%23ff8ab2'/%3E%3C/svg%3E");
+  background-size:140px 140px;
+}
+body > *{ position:relative; z-index:1; }
+.teacher-fab, .teacher-panel{ z-index:40; }
 
 /* ─── header ─── */
 .hero{
