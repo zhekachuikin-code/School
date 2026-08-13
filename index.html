@@ -237,19 +237,27 @@ input[type="text"]:focus, select:focus{ border-color:var(--ink); }
   width:16px;
   flex-shrink:0;
 }
-.math-item .blank{
-  display:inline-block;
-  min-width:48px;
-  border-bottom:2px solid var(--ink-soft);
+.math-item .math-input{
+  width:60px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:16px;
+  font-weight:700;
   text-align:center;
-  padding-bottom:1px;
+  padding:5px 4px;
+  border:1.5px solid var(--rule);
+  border-radius:7px;
+  outline:none;
+  background:#fff;
+  color:var(--graphite);
 }
+.math-item .math-input:focus{ border-color:var(--ink); }
+.math-item.correct .math-input{ border-color:var(--good); background:#eefaf1; }
+.math-item.wrong .math-input{ border-color:var(--margin-red); background:#fdf1ee; }
 .math-item .answer{
   color:var(--margin-red);
   font-weight:800;
   display:none;
 }
-.math-item.show .blank{ display:none; }
 .math-item.show .answer{ display:inline; }
 
 .problem-answer{
@@ -320,7 +328,7 @@ footer{
   .hero, .controls, .status, .actions-row, footer, .reveal-btn, .trainer, .teacher-fab, .teacher-panel{ display:none !important; }
   .notebook{ max-width:100%; gap:0; }
   .page{ box-shadow:none; border-radius:0; page-break-after:always; }
-  .math-item .blank{ min-width:70px; }
+  .math-item .math-input{ min-width:70px; }
 }
 
 /* ─── multiplication trainer ─── */
@@ -594,7 +602,11 @@ footer{
     <div class="page-tag">Сторінка 2 · Математика</div>
     <h2>🧮 Реши приклади</h2>
     <div class="math-grid" id="mathGrid"></div>
-    <button class="reveal-btn" onclick="toggleMathAnswers(this)">Показати відповіді</button>
+    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;">
+      <button class="trainer-btn secondary" onclick="checkMathAnswers()">✅ Перевірити</button>
+      <button class="reveal-btn" onclick="toggleMathAnswers(this)">Показати відповіді</button>
+    </div>
+    <div class="trainer-score" id="mathScore"></div>
   </div>
 
   <div class="page">
@@ -718,7 +730,7 @@ ${nameNote}
   "readingBody": "текст для читання з теми, 5-8 простих речень (60-100 слів), зрозумілою для дитини 7-8 років мовою, без складних термінів",
   "mathExamples": [
     {"expression": "7 + 8 =", "answer": "15"},
-    ... рівно 10 прикладів у такому ж форматі, різноманітних (частина на додавання, частина на віднімання), відповідно до вказаного рівня складності
+    ... рівно 10 прикладів у такому ж форматі, різноманітних (частина на додавання, частина на віднімання), відповідно до вказаного рівня складності. Обов'язково зроби 2-3 приклади з ТРЬОМА числами і двома діями поспіль, наприклад "9 - 5 + 3 =" або "4 + 6 - 2 =" (порядок дій зліва направо, відповідь має бути правильною з урахуванням обох дій). Решта прикладів — звичайні, з двома числами
   ],
   "problemText": "текстова задача для дитини 7-8 років (2-3 речення), логічно пов'язана з рівнем математики вище, з чітким питанням в кінці",
   "problemAnswer": "коротке покрокове розв'язання задачі з відповіддю (2-4 речення, простою мовою)",
@@ -729,15 +741,41 @@ ${nameNote}
 Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer.`;
 }
 
+let currentMathAnswers = [];
+
 function renderMathExamples(examples) {
   const grid = document.getElementById('mathGrid');
   grid.innerHTML = '';
-  examples.slice(0, 10).forEach((ex, i) => {
+  const list = examples.slice(0, 10);
+  currentMathAnswers = list.map(ex => (ex.answer || '').toString().trim());
+  list.forEach((ex, i) => {
     const item = document.createElement('div');
     item.className = 'math-item';
-    item.innerHTML = `<span class="num">${i + 1}.</span> <span>${escapeHtml(ex.expression || '')}</span> <span class="blank"></span><span class="answer">${escapeHtml(ex.answer || '')}</span>`;
+    item.dataset.index = i;
+    item.innerHTML = `<span class="num">${i + 1}.</span> <span>${escapeHtml(ex.expression || '')}</span> <input type="text" class="math-input" inputmode="numeric" autocomplete="off"><span class="answer">${escapeHtml(ex.answer || '')}</span>`;
     grid.appendChild(item);
   });
+  const scoreEl = document.getElementById('mathScore');
+  if (scoreEl) scoreEl.textContent = '';
+}
+
+function checkMathAnswers() {
+  if (!currentMathAnswers.length) return;
+  let correct = 0;
+  document.querySelectorAll('#mathGrid .math-item').forEach(item => {
+    const idx = parseInt(item.dataset.index, 10);
+    const input = item.querySelector('.math-input');
+    const rawVal = input.value.trim().replace(',', '.');
+    const rawAnswer = (currentMathAnswers[idx] || '').replace(',', '.');
+    const numVal = parseFloat(rawVal);
+    const numAnswer = parseFloat(rawAnswer);
+    const isCorrect = rawVal !== '' && !isNaN(numVal) && !isNaN(numAnswer) && numVal === numAnswer;
+    item.classList.toggle('correct', isCorrect);
+    item.classList.toggle('wrong', !isCorrect && rawVal !== '');
+    if (isCorrect) correct++;
+  });
+  const scoreEl = document.getElementById('mathScore');
+  if (scoreEl) scoreEl.textContent = `Правильно: ${correct} з ${currentMathAnswers.length} 🎉`;
 }
 
 // ─── password protection for answer/results buttons ───────
@@ -798,12 +836,17 @@ function initTableChips() {
 
 function startMultiplicationQuiz() {
   const tables = Array.from(selectedTables);
-  const questions = [];
-  for (let i = 0; i < 10; i++) {
-    const a = tables[Math.floor(Math.random() * tables.length)];
-    const b = Math.floor(Math.random() * 10) + 1;
-    questions.push({ a, b, answer: a * b });
+  const combos = [];
+  tables.forEach(a => {
+    for (let b = 1; b <= 10; b++) combos.push({ a, b, answer: a * b });
+  });
+  // Fisher–Yates shuffle so we can take unique pairs without repeats
+  for (let i = combos.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [combos[i], combos[j]] = [combos[j], combos[i]];
   }
+  const count = Math.min(10, combos.length);
+  const questions = combos.slice(0, count);
   currentQuiz = questions;
 
   const grid = document.getElementById('tqGrid');
