@@ -528,6 +528,12 @@ footer{
   gap:10px;
   background:#fbfaf5;
 }
+.tmsg-wrap{
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+}
+.tmsg-wrap.user{ justify-content:flex-end; }
 .tmsg{
   max-width:85%;
   padding:9px 12px;
@@ -577,6 +583,18 @@ footer{
 .mic-btn.listening{ background:var(--margin-red); color:#fff; animation:pulse 1s infinite; }
 @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(216,90,76,0.5);} 70%{box-shadow:0 0 0 8px rgba(216,90,76,0);} 100%{box-shadow:0 0 0 0 rgba(216,90,76,0);} }
 .send-btn{ background:var(--margin-red); color:#fff; }
+.speak-btn{
+  border:none;
+  border-radius:50%;
+  width:26px; height:26px;
+  flex-shrink:0;
+  cursor:pointer;
+  font-size:12px;
+  background:#eef3fa;
+  color:var(--ink);
+  margin-bottom:2px;
+}
+.speak-btn:disabled{ opacity:0.6; cursor:default; }
 .teacher-typing{ font-size:12px; color:var(--ink-soft); font-style:italic; }
 </style>
 </head>
@@ -708,6 +726,7 @@ footer{
 <script>
 // ─── CONFIG (той самий сервер ШІ, що й в основному генераторі TreeLand) ───────
 const SERVER_URL = 'https://gemini-api-server-dnzk.onrender.com/api/generate';
+const TTS_URL = SERVER_URL.replace('/api/generate', '/api/tts');
 
 let selectedTopic = 'Тварини';
 
@@ -1060,12 +1079,55 @@ function toggleTeacherPanel() {
 
 function appendTeacherMessage(role, text) {
   const body = document.getElementById('teacherBody');
+  const wrap = document.createElement('div');
+  wrap.className = 'tmsg-wrap ' + (role === 'user' ? 'user' : 'bot');
+
   const div = document.createElement('div');
   div.className = 'tmsg ' + (role === 'user' ? 'user' : 'bot');
   div.textContent = text;
-  body.appendChild(div);
+  wrap.appendChild(div);
+
+  if (role !== 'user') {
+    const speakBtn = document.createElement('button');
+    speakBtn.type = 'button';
+    speakBtn.className = 'speak-btn';
+    speakBtn.title = 'Прослухати';
+    speakBtn.textContent = '🔊';
+    speakBtn.onclick = () => playTeacherAudio(text, speakBtn);
+    wrap.appendChild(speakBtn);
+  }
+
+  body.appendChild(wrap);
   body.scrollTop = body.scrollHeight;
   teacherHistory.push({ role, text });
+}
+
+async function playTeacherAudio(text, btn) {
+  // якщо вже озвучували цю репліку — просто відтворюємо ще раз без нового запиту
+  if (btn.dataset.audio) {
+    new Audio(btn.dataset.audio).play();
+    return;
+  }
+  const original = btn.textContent;
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  try {
+    const resp = await fetch(TTS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await resp.json();
+    if (!data.ok || !data.audio) throw new Error('no audio');
+    const src = `data:${data.mimeType || 'audio/wav'};base64,${data.audio}`;
+    btn.dataset.audio = src;
+    new Audio(src).play();
+  } catch (e) {
+    alert('Не вдалося озвучити повідомлення 😔 Спробуй ще раз.');
+  } finally {
+    btn.textContent = original;
+    btn.disabled = false;
+  }
 }
 
 function buildTeacherPrompt(question) {
