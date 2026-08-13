@@ -273,6 +273,54 @@ input[type="text"]:focus, select:focus{ border-color:var(--ink); }
 }
 .problem-answer.visible{ display:block; }
 
+.word-analysis{
+  margin-top:26px;
+  padding-top:20px;
+  border-top:1.5px dashed var(--rule);
+}
+.word-analysis h3{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:24px;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.wa-card{
+  background:#fbfaf5;
+  border:1px solid #e6ddc8;
+  border-radius:10px;
+  padding:12px 16px;
+  margin-bottom:10px;
+}
+.wa-word{
+  font-family:'JetBrains Mono',monospace;
+  font-size:19px;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:0.5px;
+}
+.wa-answer{ display:none; margin-top:8px; }
+#wordAnalysisList.revealed .wa-answer{ display:block; }
+.wa-details{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  font-size:13px;
+  color:var(--ink-soft);
+}
+.wa-details b{ color:var(--margin-red); }
+.wa-note{
+  margin-top:6px;
+  font-size:13px;
+  font-style:italic;
+  color:var(--graphite);
+}
+.wa-loading{
+  font-size:13px;
+  color:var(--ink-soft);
+  font-style:italic;
+}
+
 .reveal-btn{
   margin-top:14px;
   border:1.5px solid var(--rule);
@@ -604,23 +652,34 @@ footer{
     <div class="math-grid" id="mathGrid"></div>
     <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;">
       <button class="trainer-btn secondary" onclick="checkMathAnswers()">✅ Перевірити</button>
-      <button class="reveal-btn" onclick="toggleMathAnswers(this)">Показати відповіді</button>
+      <button class="reveal-btn" id="mathRevealBtn" onclick="toggleMathAnswers(this)">Показати відповіді</button>
     </div>
     <div class="trainer-score" id="mathScore"></div>
   </div>
 
   <div class="page">
-    <div class="page-tag">Сторінка 3 · Задача</div>
-    <h2>🧩 Розв'яжи задачу</h2>
-    <p class="body-text" id="problemText"></p>
-    <div class="problem-answer" id="problemAnswer"></div>
-    <button class="reveal-btn" onclick="toggleProblemAnswer(this)">Показати розв'язання</button>
+    <div class="page-tag">Сторінка 3 · Задачі</div>
+    <h2>🧩 Розв'яжи задачі</h2>
+    <p class="body-text" id="problemText1"></p>
+    <div class="problem-answer" id="problemAnswer1"></div>
+    <button class="reveal-btn" id="problemRevealBtn1" onclick="toggleProblemAnswer(this, 'problemAnswer1')">Показати розв'язання</button>
+    <hr style="border:none; border-top:1px dashed var(--rule); margin:20px 0;">
+    <p class="body-text" id="problemText2"></p>
+    <div class="problem-answer" id="problemAnswer2"></div>
+    <button class="reveal-btn" id="problemRevealBtn2" onclick="toggleProblemAnswer(this, 'problemAnswer2')">Показати розв'язання</button>
   </div>
 
   <div class="page copy-page">
     <div class="page-tag">Сторінка 4 · Переписування</div>
     <h2>✍️ Перепиши у зошит</h2>
     <p class="body-text" id="copyBody"></p>
+
+    <div class="word-analysis" id="wordAnalysis" style="display:none;">
+      <h3>🔤 Розбір слів на звуки, склади й букви</h3>
+      <div class="hint" style="margin:-4px 0 10px;">Спочатку спробуй розібрати слова сама, потім перевір себе</div>
+      <div id="wordAnalysisList"></div>
+      <button class="reveal-btn" onclick="toggleWordAnalysis(this)">Показати розбір</button>
+    </div>
   </div>
 
   <div class="actions-row">
@@ -732,13 +791,15 @@ ${nameNote}
     {"expression": "7 + 8 =", "answer": "15"},
     ... рівно 10 прикладів у такому ж форматі, різноманітних (частина на додавання, частина на віднімання), відповідно до вказаного рівня складності. Обов'язково зроби 2-3 приклади з ТРЬОМА числами і двома діями поспіль, наприклад "9 - 5 + 3 =" або "4 + 6 - 2 =" (порядок дій зліва направо, відповідь має бути правильною з урахуванням обох дій). Решта прикладів — звичайні, з двома числами
   ],
-  "problemText": "текстова задача для дитини 7-8 років (2-3 речення), логічно пов'язана з рівнем математики вище, з чітким питанням в кінці",
-  "problemAnswer": "коротке покрокове розв'язання задачі з відповіддю (2-4 речення, простою мовою)",
+  "problem1Text": "текстова задача №1 для дитини 7-8 років (2-3 речення) на ДОДАВАННЯ, логічно пов'язана з темою вище, з чітким питанням в кінці",
+  "problem1Answer": "коротке покрокове розв'язання задачі №1 з відповіддю (2-4 речення, простою мовою)",
+  "problem2Text": "текстова задача №2 для дитини 7-8 років (2-3 речення) на ВІДНІМАННЯ (обов'язково інша дія, ніж у задачі №1), логічно пов'язана з темою вище, з чітким питанням в кінці",
+  "problem2Answer": "коротке покрокове розв'язання задачі №2 з відповіддю (2-4 речення, простою мовою)",
   "copyTitle": "коротка назва тексту для переписування",
   "copyBody": "невеликий текст на 2-4 прості короткі речення (15-30 слів) для переписування дитиною у зошит каліграфічним почерком — прості слова, правильна пунктуація, без складних конструкцій"
 }
 
-Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer.`;
+Пиши українською мовою. Кожен приклад в mathExamples має закінчуватися знаком "=" у полі expression, а числову відповідь давай окремо в полі answer. Задача №1 і задача №2 мають використовувати РІЗНІ арифметичні дії (наприклад одна на додавання, інша на віднімання).`;
 }
 
 let currentMathAnswers = [];
@@ -802,12 +863,107 @@ function toggleMathAnswers(btn) {
   btn.textContent = showing ? 'Показати відповіді' : 'Приховати відповіді';
 }
 
-function toggleProblemAnswer(btn) {
-  const box = document.getElementById('problemAnswer');
+function toggleProblemAnswer(btn, id) {
+  const box = document.getElementById(id || 'problemAnswer1');
   const showing = box.classList.contains('visible');
   if (!showing && !unlockResults()) return;
   box.classList.toggle('visible');
   btn.textContent = box.classList.contains('visible') ? 'Сховати розв\'язання' : 'Показати розв\'язання';
+}
+
+// ─── word analysis (звуко-буквений розбір) ───────
+let currentWordAnalysis = [];
+
+function pickRandomWords(text, count) {
+  if (!text) return [];
+  const matches = text.match(/[А-ЩЬЮЯЄІЇҐа-щьюяєіїґ']+/g) || [];
+  const seen = new Set();
+  const unique = [];
+  matches.forEach(w => {
+    const clean = w.replace(/'/g, '');
+    if (clean.length < 4) return;
+    const key = clean.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(w);
+  });
+  for (let i = unique.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [unique[i], unique[j]] = [unique[j], unique[i]];
+  }
+  return unique.slice(0, count);
+}
+
+function buildWordAnalysisPrompt(words) {
+  return `Ти — вчитель початкових класів в Україні. Зроби звуко-буквений розбір для дитини 7-8 років (2 клас) для таких слів: ${words.map(w => `"${w}"`).join(', ')}.
+
+Поверни ВИКЛЮЧНО валідний JSON (без пояснень, без markdown) у такому форматі:
+{
+  "words": [
+    {
+      "word": "слово",
+      "syllables": "поділ слова на склади через дефіс, наприклад ки-ця",
+      "syllableCount": число (кількість складів),
+      "letterCount": число (кількість букв у слові),
+      "soundCount": число (кількість звуків у слові — може відрізнятись від кількості букв),
+      "note": "одне коротке речення простими словами для дитини — цікавий факт про це слово (наприклад чому звуків більше чи менше ніж букв, або де наголос)"
+    }
+  ]
+}
+Зроби окремий об'єкт для кожного слова зі списку вище, точно у тому ж порядку.`;
+}
+
+function renderWordAnalysis(items) {
+  const container = document.getElementById('wordAnalysisList');
+  container.innerHTML = '';
+  items.forEach((it) => {
+    const card = document.createElement('div');
+    card.className = 'wa-card';
+    card.innerHTML = `
+      <div class="wa-word">${escapeHtml(it.word || '')}</div>
+      <div class="wa-answer">
+        <div class="wa-details">
+          <span>Склади: <b>${escapeHtml(it.syllables || '—')}</b> (${escapeHtml(String(it.syllableCount ?? '—'))})</span>
+          <span>Букв: <b>${escapeHtml(String(it.letterCount ?? '—'))}</b></span>
+          <span>Звуків: <b>${escapeHtml(String(it.soundCount ?? '—'))}</b></span>
+        </div>
+        ${it.note ? `<div class="wa-note">${escapeHtml(it.note)}</div>` : ''}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+async function loadWordAnalysis(copyText) {
+  const section = document.getElementById('wordAnalysis');
+  const listEl = document.getElementById('wordAnalysisList');
+  const btn = section.querySelector('.reveal-btn');
+  const words = pickRandomWords(copyText, 2);
+
+  if (!words.length) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  listEl.className = '';
+  listEl.innerHTML = '<div class="wa-loading">Готую розбір слів…</div>';
+  if (btn) btn.textContent = 'Показати розбір';
+
+  const res = await callServer(buildWordAnalysisPrompt(words));
+  const data = res.ok ? parseWorksheetJson(res.text) : null;
+  const items = (data && Array.isArray(data.words) && data.words.length)
+    ? data.words
+    : words.map(w => ({ word: w }));
+  currentWordAnalysis = items;
+  renderWordAnalysis(items);
+}
+
+function toggleWordAnalysis(btn) {
+  const listEl = document.getElementById('wordAnalysisList');
+  const showing = listEl.classList.contains('revealed');
+  if (!showing && !unlockResults()) return;
+  listEl.classList.toggle('revealed');
+  btn.textContent = listEl.classList.contains('revealed') ? 'Сховати розбір' : 'Показати розбір';
 }
 
 // ─── multiplication table trainer ───────
@@ -1027,17 +1183,25 @@ async function generateWorksheet() {
   document.getElementById('readingTitle').textContent = '📖 ' + (data.readingTitle || 'Текст для читання');
   document.getElementById('readingBody').textContent = data.readingBody || '';
   renderMathExamples(Array.isArray(data.mathExamples) ? data.mathExamples : []);
-  document.getElementById('problemText').textContent = data.problemText || '';
-  document.getElementById('problemAnswer').textContent = data.problemAnswer || '';
-  document.getElementById('problemAnswer').classList.remove('visible');
-  document.querySelectorAll('.reveal-btn')[1] && (document.querySelectorAll('.reveal-btn')[1].textContent = 'Показати розв\'язання');
-  document.querySelectorAll('.math-item').forEach(it => it.classList.remove('show'));
-  document.querySelectorAll('.reveal-btn')[0] && (document.querySelectorAll('.reveal-btn')[0].textContent = 'Показати відповіді');
+  document.getElementById('mathRevealBtn').textContent = 'Показати відповіді';
+
+  document.getElementById('problemText1').textContent = data.problem1Text || '';
+  document.getElementById('problemAnswer1').textContent = data.problem1Answer || '';
+  document.getElementById('problemAnswer1').classList.remove('visible');
+  document.getElementById('problemRevealBtn1').textContent = 'Показати розв\'язання';
+
+  document.getElementById('problemText2').textContent = data.problem2Text || '';
+  document.getElementById('problemAnswer2').textContent = data.problem2Answer || '';
+  document.getElementById('problemAnswer2').classList.remove('visible');
+  document.getElementById('problemRevealBtn2').textContent = 'Показати розв\'язання';
+
   document.getElementById('copyBody').textContent = data.copyBody || '';
 
   document.getElementById('notebook').classList.add('visible');
   setStatus('✅ Готово! Завдання на сьогодні чекають.', 'ok');
   btn.disabled = false;
+
+  loadWordAnalysis(data.copyBody || '');
 }
 </script>
 </body>
