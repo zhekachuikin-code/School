@@ -424,6 +424,16 @@ mark.rq-mark{
   box-shadow:0 0 0 2px #ffe08a;
 }
 
+.worksheet-date{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:24px;
+  color:var(--ink);
+  text-align:right;
+  padding-right:6px;
+  margin-bottom:-8px;
+}
+
 .reveal-btn{
   margin-top:14px;
   border:1.5px solid var(--rule);
@@ -766,6 +776,8 @@ footer{
 </div>
 
 <div class="notebook" id="notebook">
+
+  <div class="worksheet-date" id="worksheetDate"></div>
 
   <div class="page">
     <div class="page-tag">Сторінка 1 · Читання</div>
@@ -1474,6 +1486,12 @@ function toggleVoiceInput() {
   recognition.start();
 }
 
+const UA_MONTHS = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+
+function formatUkrainianDate(date) {
+  return `${date.getDate()} ${UA_MONTHS[date.getMonth()]}`;
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
@@ -1502,6 +1520,7 @@ async function generateWorksheet() {
     return;
   }
 
+  document.getElementById('worksheetDate').textContent = formatUkrainianDate(new Date());
   document.getElementById('readingTitle').textContent = '📖 ' + (data.readingTitle || 'Текст для читання');
   document.getElementById('readingBody').textContent = data.readingBody || '';
   renderReadingQuestions(Array.isArray(data.readingQuestions) ? data.readingQuestions : [], data.readingBody || '');
